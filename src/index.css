@@ -375,6 +375,17 @@ button {
   animation: anchor-pulse 2.2s ease-in-out infinite;
 }
 
+.anchor-dot-on-block {
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: rgba(8, 47, 73, 0.7);
+  box-shadow:
+    0 0 0 2px rgba(34, 211, 238, 0.25),
+    0 0 10px rgba(34, 211, 238, 0.95);
+}
+
 .board-cell.is-clearing {
   z-index: 5;
   animation: cell-clear 520ms ease-out both;
@@ -522,12 +533,6 @@ button {
 .tray-slot.is-blocked {
   opacity: 0.4;
   filter: saturate(0.55);
-}
-
-.tray-slot.is-used {
-  background: rgba(4, 13, 31, 0.45);
-  border-style: dashed;
-  cursor: default;
 }
 
 .tray-slot.is-dragging-source {

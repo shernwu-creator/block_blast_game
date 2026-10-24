@@ -10,6 +10,7 @@ import {
   generateBatch,
   hasAvailableMove,
   placePiece,
+  replaceUsedPiece,
   scoreClear,
 } from './game'
 
@@ -42,7 +43,7 @@ describe('board placement', () => {
     expect(canPlace(board, O_PIECE, 2, 2)).toBe(true)
   })
 
-  it('requires an empty top-left origin even for shapes with an empty corner', () => {
+  it('ignores transparent matrix cells when checking collisions', () => {
     const tPiece = [
       [0, 1, 0],
       [1, 1, 1],
@@ -50,9 +51,23 @@ describe('board placement', () => {
     const board = createEmptyBoard()
     board[0][0] = 'rose'
 
-    expect(canPlace(board, tPiece, 0, 0)).toBe(false)
-    board[0][0] = null
     expect(canPlace(board, tPiece, 0, 0)).toBe(true)
+
+    const placed = placePiece(board, tPiece, 0, 0, 'violet')
+    expect(placed[0][0]).toBe('rose')
+    expect(placed[0][1]).toBe('violet')
+    expect(placed[1][0]).toBe('violet')
+  })
+
+  it('does not reject valid placements for transparent cells outside the board', () => {
+    const sparsePiece = [
+      [1, 0],
+      [0, 0],
+    ]
+    const board = createEmptyBoard(2)
+
+    expect(canPlace(board, sparsePiece, 1, 1)).toBe(true)
+    expect(canPlace(board, sparsePiece, 2, 0)).toBe(false)
   })
 
   it('places a piece without mutating the source board', () => {
@@ -150,5 +165,23 @@ describe('piece generation and move search', () => {
       ]),
     ).toBe(true)
     expect(hasAvailableMove(board, [{ matrix: O_PIECE }])).toBe(false)
+  })
+
+  it('replaces only the used tray slot to keep three pieces available', () => {
+    let seed = 98765
+    const random = () => {
+      seed = (seed * 16807) % 2147483647
+      return (seed - 1) / 2147483646
+    }
+
+    const original = generateBatch(3, random)
+    const used = original[1]
+    const next = replaceUsedPiece(original, used.id, random)
+
+    expect(next).toHaveLength(3)
+    expect(next[1].id).not.toBe(used.id)
+    expect(next[0]).toBe(original[0])
+    expect(next[2]).toBe(original[2])
+    expect(next.every(Boolean)).toBe(true)
   })
 })

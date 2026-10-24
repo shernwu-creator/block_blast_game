@@ -75,4 +75,25 @@ describe('drag drop geometry', () => {
 
     expect(result).toEqual({ row: 3, col: 3, valid: false })
   })
+
+  it('allows a drop when only transparent cells sit over an occupied cell', () => {
+    const board = createEmptyBoard()
+    board[0][0] = 'rose'
+    const tPiece = {
+      matrix: [
+        [0, 1, 0],
+        [1, 1, 1],
+      ],
+      width: 3,
+      height: 2,
+    }
+    const result = calculateDropAnchor({
+      board,
+      piece: tPiece,
+      pieceRect: { left: 0, top: 0, width: 120, height: 80 },
+      metrics,
+    })
+
+    expect(result).toEqual({ row: 0, col: 0, valid: true })
+  })
 })

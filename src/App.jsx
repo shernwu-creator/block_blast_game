@@ -13,9 +13,11 @@ import {
   generateBatch,
   hasAvailableMove,
   placePiece,
+  replaceUsedPiece,
   scoreClear,
 } from './game'
 import { persistHighScore, readHighScore } from './highScore'
+import soundManager from './SoundManager'
 
 const CLEAR_DELAY = 520
 const EMPTY_LINES = { rows: [], cols: [] }
@@ -410,7 +412,6 @@ function App() {
   const [isNewHighScore, setIsNewHighScore] = useState(false)
   const [combo, setCombo] = useState(0)
   const [linesCleared, setLinesCleared] = useState(0)
-  const [round, setRound] = useState(1)
   const [isClearing, setIsClearing] = useState(false)
   const [clearingLines, setClearingLines] = useState(EMPTY_LINES)
   const [hoverCell, setHoverCell] = useState(null)
@@ -426,6 +427,7 @@ function App() {
   const miniRefs = useRef(new Map())
   const dragTargetRef = useRef(null)
   const dragTargetKeyRef = useRef('')
+  const lastDragRectRef = useRef(null)
   const lastDragEndTimeRef = useRef(-Infinity)
 
   const isPlaying = gameState === 'playing'
@@ -497,6 +499,20 @@ function App() {
     [],
   )
 
+  useEffect(() => {
+    const unlockAudio = () => soundManager.unlock()
+    window.addEventListener('pointerdown', unlockAudio, {
+      once: true,
+      passive: true,
+    })
+    window.addEventListener('keydown', unlockAudio, { once: true })
+
+    return () => {
+      window.removeEventListener('pointerdown', unlockAudio)
+      window.removeEventListener('keydown', unlockAudio)
+    }
+  }, [])
+
   function resetDragState() {
     setDragPieceId(null)
     setDragTarget(null)
@@ -504,6 +520,7 @@ function App() {
     setHoverCell(null)
     dragTargetRef.current = null
     dragTargetKeyRef.current = ''
+    lastDragRectRef.current = null
   }
 
   function goHome() {
@@ -519,7 +536,6 @@ function App() {
     setScore(0)
     setCombo(0)
     setLinesCleared(0)
-    setRound(1)
     setIsClearing(false)
     setClearingLines(EMPTY_LINES)
     setBurst(null)
@@ -540,7 +556,6 @@ function App() {
     setScore(0)
     setCombo(0)
     setLinesCleared(0)
-    setRound(1)
     setIsClearing(false)
     setClearingLines(EMPTY_LINES)
     setBurst(null)
@@ -565,19 +580,13 @@ function App() {
     }
   }
 
-  function finishTurn(nextBoard, remainingPieces, finalScore) {
-    let resolvedPieces = remainingPieces
-
-    if (remainingPieces.every((piece) => piece === null)) {
-      resolvedPieces = generateBatch(BATCH_SIZE)
-      setRound((current) => current + 1)
-    }
-
-    setPieces(resolvedPieces)
+  function finishTurn(nextBoard, nextPieces, finalScore) {
     setBoard(nextBoard)
     setIsClearing(false)
 
-    if (hasAvailableMove(nextBoard, resolvedPieces) && gameState === 'playing') {
+    if (gameState !== 'playing') return
+
+    if (hasAvailableMove(nextBoard, nextPieces)) {
       setGameState('playing')
     } else {
       endGame(finalScore)
@@ -588,15 +597,24 @@ function App() {
     if (!isInteractive) return false
 
     const piece = pieces.find((candidate) => candidate?.id === pieceId)
-    if (!piece) return false
+    if (!piece) {
+      soundManager.playError()
+      return false
+    }
 
     const filledBoard = placePiece(board, piece.matrix, row, col, piece.color)
-    if (!filledBoard) return false
+    if (!filledBoard) {
+      soundManager.playError()
+      return false
+    }
+
+    soundManager.playDrop()
+
+    // Slot-for-slot refill: the tray is never allowed to drop below 3 pieces.
+    const nextPieces = replaceUsedPiece(pieces, pieceId)
+    setPieces(nextPieces)
 
     const completed = findCompletedLines(filledBoard)
-    const remainingPieces = pieces.map((candidate) =>
-      candidate?.id === pieceId ? null : candidate,
-    )
 
     setSelectedId(null)
     resetDragState()
@@ -606,6 +624,7 @@ function App() {
       const points = scoreClear(completed.count, nextCombo)
       const nextScore = score + points
 
+      soundManager.playClear()
       setScore(nextScore)
       setCombo(nextCombo)
       setLinesCleared((current) => current + completed.count)
@@ -629,12 +648,12 @@ function App() {
           completed.cols,
         )
         setClearingLines(EMPTY_LINES)
-        finishTurn(clearedBoard, remainingPieces, nextScore)
+        finishTurn(clearedBoard, nextPieces, nextScore)
       }, CLEAR_DELAY)
     } else {
       setCombo(0)
       setBurst(null)
-      finishTurn(filledBoard, remainingPieces, score)
+      finishTurn(filledBoard, nextPieces, score)
     }
 
     return true
@@ -677,18 +696,21 @@ function App() {
     setDragScale(measureDragScale(piece))
     dragTargetRef.current = null
     dragTargetKeyRef.current = ''
+    lastDragRectRef.current = null
   }
 
   function handlePieceDrag(piece) {
     const miniElement = miniRefs.current.get(piece.id)
     if (!miniElement) return
 
-    const metrics = readBoardMetrics(boardGridRef.current)
+    const pieceRect = miniElement.getBoundingClientRect()
+    lastDragRectRef.current = pieceRect
+
     const target = calculateDropAnchor({
       board,
       piece,
-      pieceRect: miniElement.getBoundingClientRect(),
-      metrics,
+      pieceRect,
+      metrics: readBoardMetrics(boardGridRef.current),
     })
     const key = target
       ? `${target.row}:${target.col}:${target.valid}`
@@ -702,7 +724,16 @@ function App() {
   }
 
   function handlePieceDragEnd(piece, event) {
-    const target = dragTargetRef.current
+    // Recalculate from the last measured visual centre and the live board
+    // rects. This avoids the snap-back transform that starts on touch release.
+    const target = lastDragRectRef.current
+      ? calculateDropAnchor({
+          board,
+          piece,
+          pieceRect: lastDragRectRef.current,
+          metrics: readBoardMetrics(boardGridRef.current),
+        })
+      : dragTargetRef.current
     const droppedId = piece.id
     lastDragEndTimeRef.current = event?.timeStamp ?? 0
 
@@ -712,10 +743,12 @@ function App() {
     setHoverCell(null)
     dragTargetRef.current = null
     dragTargetKeyRef.current = ''
+    lastDragRectRef.current = null
 
     if (target?.valid) {
       handlePlace(droppedId, target.row, target.col)
     } else {
+      soundManager.playError()
       setSelectedId(null)
     }
   }
@@ -859,12 +892,11 @@ function App() {
                       const isFilled = Boolean(cell)
                       const isClearingCell = clearingCellKeys.has(key)
                       const isPreview = previewCells.has(key)
-                      const isAnchor =
-                        anchorKeys.has(key) && !isFilled && !dragPieceId
-                      const cellLabel = isFilled
-                        ? '已放置方塊'
-                        : isAnchor
-                          ? '可放置方塊的左上角'
+                      const isAnchor = anchorKeys.has(key) && !dragPieceId
+                      const cellLabel = isAnchor
+                        ? '可放置方塊的左上角'
+                        : isFilled
+                          ? '已放置方塊'
                           : '空格'
 
                       return (
@@ -873,7 +905,9 @@ function App() {
                           role="gridcell"
                           key={key}
                           disabled={
-                            !isInteractive || isFilled || Boolean(dragPieceId)
+                            !isInteractive ||
+                            Boolean(dragPieceId) ||
+                            (isFilled && !isAnchor)
                           }
                           aria-label={`第 ${row + 1} 列，第 ${col + 1} 行，${cellLabel}`}
                           onClick={() => handleCellClick(row, col)}
@@ -905,6 +939,9 @@ function App() {
                                 className="block-face absolute inset-0 rounded-sm"
                                 style={blockStyle(cell)}
                               />
+                              {isAnchor ? (
+                                <span className="anchor-dot anchor-dot-on-block" />
+                              ) : null}
                               {isClearingCell ? (
                                 <span className="clear-spark absolute inset-0 rounded-sm" />
                               ) : null}
@@ -986,26 +1023,12 @@ function App() {
                   </span>
                 </div>
                 <span className="font-display text-[9px] font-semibold tracking-[0.18em] text-cyan-200/45">
-                  ROUND {String(round).padStart(2, '0')}
+                  AUTO REFILL
                 </span>
               </div>
 
               <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-                {pieces.map((piece, index) => {
-                  if (!piece) {
-                    return (
-                      <div
-                        className="tray-slot is-used grid place-items-center"
-                        key={`used-${index}`}
-                        aria-label="已使用的方塊欄位"
-                      >
-                        <span className="rounded border border-dashed border-slate-600/40 px-1.5 py-0.5 text-[8px] tracking-[0.18em] text-slate-600">
-                          USED
-                        </span>
-                      </div>
-                    )
-                  }
-
+                {pieces.map((piece) => {
                   const available = (pieceAnchors.get(piece.id)?.length ?? 0) > 0
                   const selected = piece.id === selectedId
                   const blocked = !available && isInteractive

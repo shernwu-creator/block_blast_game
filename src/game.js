@@ -226,18 +226,26 @@ export function cloneBoard(board) {
 }
 
 export function canPlace(board, matrix, row, col) {
-  if (!board.length || !matrix.length || !matrix[0]?.length) return false
-  if (row < 0 || col < 0) return false
-  if (row + matrix.length > board.length) return false
-  if (col + matrix[0].length > board[0].length) return false
-  // Click placement uses the clicked cell as the piece's top-left origin.
-  // Requiring that origin to be empty keeps every valid anchor clickable,
-  // including shapes whose top-left matrix corner is empty.
-  if (board[row][col] !== null) return false
+  if (!board.length || !matrix.length) return false
 
+  // Only solid cells participate in bounds and collision checks. Transparent
+  // matrix cells may hang over the board edge or an occupied cell safely.
   for (let r = 0; r < matrix.length; r += 1) {
-    for (let c = 0; c < matrix[r].length; c += 1) {
-      if (matrix[r][c] && board[row + r][col + c] !== null) {
+    const matrixRow = matrix[r]
+    if (!matrixRow) continue
+
+    for (let c = 0; c < matrixRow.length; c += 1) {
+      if (!matrixRow[c]) continue
+
+      const boardRow = row + r
+      const boardCol = col + c
+      if (
+        boardRow < 0 ||
+        boardRow >= board.length ||
+        boardCol < 0 ||
+        boardCol >= board[0].length ||
+        board[boardRow][boardCol] !== null
+      ) {
         return false
       }
     }
@@ -311,12 +319,8 @@ export function findValidAnchors(board, matrix) {
   const anchors = []
   if (!board.length || !matrix.length) return anchors
 
-  const maxRow = board.length - matrix.length
-  const maxCol = board[0].length - matrix[0].length
-  if (maxRow < 0 || maxCol < 0) return anchors
-
-  for (let row = 0; row <= maxRow; row += 1) {
-    for (let col = 0; col <= maxCol; col += 1) {
+  for (let row = 0; row < board.length; row += 1) {
+    for (let col = 0; col < board[0].length; col += 1) {
       if (canPlace(board, matrix, row, col)) anchors.push({ row, col })
     }
   }
@@ -325,16 +329,28 @@ export function findValidAnchors(board, matrix) {
 }
 
 export function canPlaceAnywhere(board, matrix) {
-  if (matrix.length > board.length) return false
-  if (matrix[0].length > board[0].length) return false
+  if (!board.length || !matrix.length) return false
 
-  for (let row = 0; row <= board.length - matrix.length; row += 1) {
-    for (let col = 0; col <= board[0].length - matrix[0].length; col += 1) {
+  for (let row = 0; row < board.length; row += 1) {
+    for (let col = 0; col < board[0].length; col += 1) {
       if (canPlace(board, matrix, row, col)) return true
     }
   }
 
   return false
+}
+
+/**
+ * Immediately replaces a consumed tray piece while preserving its slot. This
+ * keeps the tray at three pieces after every successful placement.
+ */
+export function replaceUsedPiece(pieces, usedPieceId, random = Math.random) {
+  const usedIndex = pieces.findIndex((piece) => piece?.id === usedPieceId)
+  if (usedIndex === -1) return pieces
+
+  const nextPieces = [...pieces]
+  nextPieces[usedIndex] = generateBatch(1, random)[0]
+  return nextPieces
 }
 
 export function hasAvailableMove(board, pieces) {
