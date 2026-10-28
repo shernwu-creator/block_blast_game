@@ -189,14 +189,14 @@ function MenuScreen({ highScore, onStart }) {
         >
           <LogoMark large />
           <p className="menu-kicker mt-6">NEON PUZZLE · 8 × 8</p>
-          <h1 className="font-display mt-3 text-[clamp(2.5rem,12vw,3.8rem)] leading-[0.92] font-black tracking-[0.03em] text-white">
+          <h1 className="font-display mt-3 text-[clamp(2.3rem,11vw,3.4rem)] leading-[0.94] font-black tracking-[0.03em] text-white">
             BLOCK
             <span className="title-gradient mt-1 block">BLAST</span>
           </h1>
-          <p className="mt-4 text-sm font-bold tracking-[0.4em] text-cyan-100/75">
+          <p className="mt-4 text-base font-bold tracking-[0.28em] text-cyan-100/85">
             方塊爆破
           </p>
-          <p className="mx-auto mt-3 max-w-[19rem] text-xs leading-6 text-slate-400">
+          <p className="mx-auto mt-3 max-w-[20rem] text-sm leading-7 text-slate-300/90">
             拖曳霓虹方塊，填滿整行或整列。
             <br />
             連續消除，擊破你的最高分。
@@ -221,15 +221,15 @@ function MenuScreen({ highScore, onStart }) {
               </svg>
             </span>
             <span className="text-left">
-              <span className="block text-[9px] font-bold tracking-[0.2em] text-slate-500">
+              <span className="block text-[11px] font-bold tracking-[0.12em] text-slate-300">
                 歷史最高分
               </span>
-              <span className="block text-[9px] tracking-[0.16em] text-amber-200/45">
+              <span className="block text-[11px] tracking-[0.12em] text-amber-200/70">
                 PERSONAL BEST
               </span>
             </span>
           </div>
-          <span className="font-display text-xl font-bold tracking-[0.05em] text-amber-200">
+          <span className="font-display text-2xl font-bold tracking-[0.04em] text-amber-200">
             {formatScore(highScore)}
           </span>
         </motion.div>
@@ -237,7 +237,7 @@ function MenuScreen({ highScore, onStart }) {
         <motion.button
           type="button"
           onClick={onStart}
-          className="start-button mt-6 w-full rounded-2xl px-5 py-4 font-display text-sm font-black tracking-[0.18em] text-[#03111f]"
+          className="start-button mt-6 w-full rounded-2xl px-5 py-4 font-display text-base font-black tracking-[0.16em] text-[#03111f]"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.26, duration: 0.42, ease: 'easeOut' }}
@@ -273,17 +273,17 @@ function MenuScreen({ highScore, onStart }) {
             ['03', '連消加倍'],
           ].map(([number, label]) => (
             <div key={number} className="menu-rule">
-              <span className="font-display block text-[8px] tracking-[0.18em] text-cyan-300/45">
+              <span className="font-display block text-[11px] tracking-[0.14em] text-cyan-300/75">
                 {number}
               </span>
-              <span className="mt-1 block text-[9px] font-semibold tracking-[0.08em] text-slate-400">
+              <span className="mt-1 block text-[13px] font-semibold tracking-[0.02em] text-slate-200">
                 {label}
               </span>
             </div>
           ))}
         </motion.div>
 
-        <p className="mt-6 text-[8px] font-semibold tracking-[0.24em] text-slate-600">
+        <p className="mt-6 text-[11px] font-semibold tracking-[0.14em] text-slate-500">
           FILL LINES · CHAIN COMBOS · KEEP GOING
         </p>
       </div>
@@ -326,7 +326,7 @@ function GameOverScreen({
             <span className="size-2.5 rounded-[2px] bg-rose-400 shadow-[0_0_10px_#fb7185]" />
           </div>
 
-          <p className="font-display mt-4 text-[9px] font-bold tracking-[0.32em] text-cyan-200/55">
+          <p className="font-display mt-4 text-[11px] font-bold tracking-[0.26em] text-cyan-200/75">
             GAME OVER
           </p>
           <h1 className="font-display mt-1 text-3xl font-black tracking-[0.06em] text-white">
@@ -343,13 +343,13 @@ function GameOverScreen({
               <span aria-hidden="true">★</span> New High Score!
             </motion.div>
           ) : (
-            <p className="mt-2 text-xs leading-relaxed text-slate-400">
+            <p className="mt-2 text-sm leading-relaxed text-slate-300/90">
               方塊已無處可放，再挑戰一次吧。
             </p>
           )}
 
           <div className="mt-5 rounded-2xl border border-white/[0.08] bg-[#040e21] px-4 py-3.5">
-            <p className="text-[8px] font-bold tracking-[0.28em] text-slate-500">
+            <p className="text-[11px] font-bold tracking-[0.2em] text-slate-400">
               FINAL SCORE
             </p>
             <p className="font-display mt-1 text-[2.35rem] leading-none font-black tracking-tight text-cyan-200 [text-shadow:0_0_28px_rgba(34,211,238,0.4)]">
@@ -357,7 +357,7 @@ function GameOverScreen({
             </p>
             <div className="mt-3 grid grid-cols-2 gap-2 border-t border-white/[0.06] pt-3">
               <div>
-                <p className="text-[8px] tracking-[0.16em] text-slate-500">
+                <p className="text-[11px] tracking-[0.08em] text-slate-400">
                   最高分 BEST
                 </p>
                 <p className="font-display mt-0.5 text-sm font-bold text-amber-200">
@@ -365,7 +365,7 @@ function GameOverScreen({
                 </p>
               </div>
               <div>
-                <p className="text-[8px] tracking-[0.16em] text-slate-500">
+                <p className="text-[11px] tracking-[0.08em] text-slate-400">
                   消除行數 LINES
                 </p>
                 <p className="font-display mt-0.5 text-sm font-bold text-fuchsia-200">
@@ -379,7 +379,7 @@ function GameOverScreen({
             ref={restartRef}
             type="button"
             onClick={onRestart}
-            className="restart-button mt-4 w-full rounded-xl px-4 py-3 font-display text-xs font-bold tracking-[0.18em] text-[#03111f] transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200"
+            className="restart-button mt-4 w-full rounded-xl px-4 py-3 font-display text-[15px] font-bold tracking-[0.14em] text-[#03111f] transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200"
             whileHover={{ scale: 1.015 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -389,11 +389,11 @@ function GameOverScreen({
           <button
             type="button"
             onClick={onHome}
-            className="mt-2.5 w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-[10px] font-bold tracking-[0.16em] text-slate-300 transition hover:border-cyan-300/30 hover:bg-cyan-300/[0.07] hover:text-cyan-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 active:scale-[0.99]"
+            className="mt-2.5 w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-[13px] font-bold tracking-[0.1em] text-slate-200 transition hover:border-cyan-300/30 hover:bg-cyan-300/[0.07] hover:text-cyan-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 active:scale-[0.99]"
           >
             回首頁
           </button>
-          <p className="mt-3 text-[8px] tracking-[0.16em] text-slate-600">
+          <p className="mt-3 text-[11px] tracking-[0.12em] text-slate-500">
             CLEAR LINES · BUILD COMBOS
           </p>
         </div>
@@ -786,7 +786,7 @@ function App() {
                   <p className="font-display text-base leading-none font-black tracking-[0.11em] text-white">
                     BLOCK <span className="title-gradient">BLAST</span>
                   </p>
-                  <p className="mt-1 text-[8px] font-semibold tracking-[0.24em] text-cyan-200/45">
+                  <p className="mt-1 text-[11px] font-semibold tracking-[0.14em] text-cyan-200/65">
                     NEON PUZZLE · 8 × 8
                   </p>
                 </div>
@@ -856,7 +856,7 @@ function App() {
                   className="combo-badge animate-combo-in"
                   aria-label={`連消 ${combo} 次`}
                 >
-                  <span className="font-display text-[8px] tracking-[0.22em] text-fuchsia-200/80">
+                  <span className="font-display text-[11px] tracking-[0.16em] text-fuchsia-100/90">
                     COMBO
                   </span>
                   <span className="font-display text-base leading-none font-black text-white">
@@ -947,7 +947,7 @@ function App() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 4, scale: 0.96 }}
                       className={[
-                        'drop-hint pointer-events-none absolute right-0 bottom-3 left-0 z-30 mx-auto w-fit px-3 py-1.5 text-[9px] font-bold tracking-[0.14em]',
+                        'drop-hint pointer-events-none absolute right-0 bottom-3 left-0 z-30 mx-auto w-fit px-3 py-1.5 text-[12px] font-bold tracking-[0.06em]',
                         dragTarget?.valid
                           ? 'is-valid'
                           : dragTarget
@@ -970,14 +970,14 @@ function App() {
                     aria-hidden="true"
                   >
                     <div className="clear-burst">
-                      <span className="font-display block text-[10px] font-bold tracking-[0.28em] text-cyan-200">
+                      <span className="font-display block text-[11px] font-bold tracking-[0.22em] text-cyan-200">
                         {burstTitle}
                       </span>
                       <span className="font-display mt-0.5 block text-3xl font-black tracking-tight text-white">
                         +{formatScore(burst.points)}
                       </span>
                       {burst.combo > 1 ? (
-                        <span className="mt-0.5 block text-[10px] font-bold tracking-[0.2em] text-fuchsia-300">
+                        <span className="mt-0.5 block text-[12px] font-bold tracking-[0.12em] text-fuchsia-200">
                           COMBO ×{burst.combo}
                         </span>
                       ) : null}
@@ -994,11 +994,11 @@ function App() {
               <div className="mb-2 flex items-center justify-between gap-2 px-1">
                 <div className="flex items-center gap-2">
                   <span className="h-1 w-1 rounded-full bg-fuchsia-400 shadow-[0_0_7px_#e879f9]" />
-                  <span className="text-[9px] font-bold tracking-[0.2em] text-slate-300/75">
-                    方塊庫 <span className="text-slate-500">/ DRAG A PIECE</span>
+                  <span className="text-[12px] font-bold tracking-[0.1em] text-slate-200">
+                    方塊庫 <span className="text-slate-400">/ DRAG A PIECE</span>
                   </span>
                 </div>
-                <span className="font-display text-[9px] font-semibold tracking-[0.18em] text-cyan-200/45">
+                <span className="font-display text-[11px] font-semibold tracking-[0.14em] text-cyan-200/65">
                   AUTO REFILL
                 </span>
               </div>
@@ -1023,7 +1023,7 @@ function App() {
                         .filter(Boolean)
                         .join(' ')}
                     >
-                      <span className="pointer-events-none font-display absolute top-1.5 left-2 z-10 text-[8px] font-bold tracking-widest text-white/25">
+                      <span className="pointer-events-none font-display absolute top-1.5 left-2 z-10 text-[11px] font-bold tracking-widest text-white/40">
                         {piece.label}
                       </span>
                       {selected && !dragging ? (
@@ -1078,8 +1078,8 @@ function App() {
                       </motion.div>
 
                       <span
-                        className={`pointer-events-none mt-1 text-[8px] font-semibold tracking-[0.14em] ${
-                          selected ? 'text-cyan-200/75' : 'text-slate-500/70'
+                        className={`pointer-events-none mt-1 text-[11px] font-semibold tracking-[0.04em] ${
+                          selected ? 'text-cyan-200/90' : 'text-slate-400'
                         }`}
                       >
                         {dragging
@@ -1096,12 +1096,12 @@ function App() {
               </div>
             </section>
 
-            <div className="mt-3 flex items-center justify-between gap-3 px-1 text-[9px] tracking-[0.08em] text-slate-500">
+            <div className="mt-3 flex items-center justify-between gap-3 px-1 text-[12px] tracking-[0.04em] text-slate-400">
               <p>
-                <span className="text-cyan-300/65">拖曳方塊</span> 到棋盤
+                <span className="text-cyan-300/90">拖曳方塊</span> 到棋盤
                 <span className="hidden sm:inline"> · 點一下也可選取</span>
               </p>
-              <span className="font-display hidden text-[8px] tracking-[0.14em] text-slate-600 sm:inline">
+              <span className="font-display hidden text-[11px] tracking-[0.1em] text-slate-500 sm:inline">
                 FILL LINES · CHAIN COMBOS
               </span>
             </div>
