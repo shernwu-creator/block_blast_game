@@ -16,7 +16,7 @@
 - 拖曳時方塊會放大到接近棋盤格尺寸，並浮在手指上方約 40px，避免遮住落點。
 - 放開時會以方塊中心重新比對棋盤 DOM 幾何；方塊矩陣中的 `0` 透明格不參與碰撞與邊界判定。
 - 方塊進入棋盤後會即時顯示半透明落點陰影；合法位置放開即扣合，非法位置會平滑彈回原位。
-- 也可點一下方塊選取，再點擊棋盤上標示的左上角錨點放置。
+- 點一下方塊選取後，棋盤不會出現任何錨點亮點；只要把游標移到想放的位置就會預覽落點，點擊該格即可放置。
 - 每填滿一行或一列即消除：單行 100 分，同時消除多行會逐條加倍。
 - 連續消除可累積 Combo，分數倍率最高 x8。
 - 每次成功放置後，該插槽會立即補入新方塊，方塊庫永遠維持 3 個。
@@ -54,10 +54,30 @@ src/
   SoundManager.js      # Web Audio 合成音效
   SoundManager.test.js # 音效節點與降級測試
   index.css            # Tailwind 與霓虹視覺樣式
+public/
+  manifest.webmanifest # PWA 應用資訊（名稱、主題色、圖示）
+  sw.js                # Service Worker：App shell 預快取與離線遊玩
+  icons/               # 192 / 512 / maskable / apple-touch-icon 圖示
 .github/
   workflows/
     deploy.yml         # GitHub Pages 建置與部署
 ```
+
+## PWA（安裝到桌面）
+
+建置後的網站本身就是可安裝的 PWA：
+
+- `manifest.webmanifest` 提供 `standalone` 顯示模式、主題色與 192/512（含 maskable）圖示。
+- `sw.js` 於首次載入預快取 App shell，並以 runtime cache 保存 Vite 產生的 hash 檔名資源，離線也能開局。
+- Service Worker 只在 production build 註冊（`pnpm dev` 不會攔截請求），避免本機開發時拿到舊快取。
+
+安裝方式：
+
+- **Chrome / Edge（桌機）**：開啟線上網址後點網址列的「安裝」圖示，或選單 →「安裝 Block Blast」。
+- **Android Chrome**：選單 →「加到主畫面」。
+- **iOS Safari**：分享 →「加入主畫面」。
+
+PWA 需要 HTTPS（GitHub Pages 已提供）才能安裝；變更 `sw.js` 內容時請一併調整 `SHELL_CACHE` / `RUNTIME_CACHE` 版本號，讓舊快取自動失效。
 
 ## GitHub Pages 部署
 

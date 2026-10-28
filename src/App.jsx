@@ -445,16 +445,6 @@ function App() {
     return anchorsById
   }, [board, pieces])
 
-  const anchorKeys = useMemo(
-    () =>
-      new Set(
-        (selectedId ? (pieceAnchors.get(selectedId) ?? []) : []).map(
-          ({ row, col }) => `${row}-${col}`,
-        ),
-      ),
-    [pieceAnchors, selectedId],
-  )
-
   const previewCells = useMemo(() => {
     const cells = new Set()
     if (!previewPiece || !previewAnchor || !isInteractive) return cells
@@ -892,23 +882,14 @@ function App() {
                       const isFilled = Boolean(cell)
                       const isClearingCell = clearingCellKeys.has(key)
                       const isPreview = previewCells.has(key)
-                      const isAnchor = anchorKeys.has(key) && !dragPieceId
-                      const cellLabel = isAnchor
-                        ? '可放置方塊的左上角'
-                        : isFilled
-                          ? '已放置方塊'
-                          : '空格'
+                      const cellLabel = isFilled ? '已放置方塊' : '空格'
 
                       return (
                         <button
                           type="button"
                           role="gridcell"
                           key={key}
-                          disabled={
-                            !isInteractive ||
-                            Boolean(dragPieceId) ||
-                            (isFilled && !isAnchor)
-                          }
+                          disabled={!isInteractive || Boolean(dragPieceId) || isFilled}
                           aria-label={`第 ${row + 1} 列，第 ${col + 1} 行，${cellLabel}`}
                           onClick={() => handleCellClick(row, col)}
                           onMouseEnter={() => {
@@ -925,7 +906,6 @@ function App() {
                             'board-cell relative aspect-square rounded-sm',
                             isFilled ? 'is-filled' : '',
                             isClearingCell ? 'is-clearing' : '',
-                            isAnchor ? 'is-anchor' : '',
                             selectedPiece && isInteractive && !dragPieceId
                               ? 'is-targetable'
                               : '',
@@ -939,9 +919,6 @@ function App() {
                                 className="block-face absolute inset-0 rounded-sm"
                                 style={blockStyle(cell)}
                               />
-                              {isAnchor ? (
-                                <span className="anchor-dot anchor-dot-on-block" />
-                              ) : null}
                               {isClearingCell ? (
                                 <span className="clear-spark absolute inset-0 rounded-sm" />
                               ) : null}
@@ -949,7 +926,6 @@ function App() {
                           ) : (
                             <>
                               <span className="cell-well absolute inset-0 rounded-sm" />
-                              {isAnchor ? <span className="anchor-dot" /> : null}
                               {isPreview ? (
                                 <span
                                   className="block-ghost absolute inset-0 rounded-sm"

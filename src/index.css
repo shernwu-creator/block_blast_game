@@ -360,32 +360,6 @@ button {
   animation: ghost-in 110ms ease-out;
 }
 
-.anchor-dot {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  z-index: 3;
-  width: 4px;
-  height: 4px;
-  margin: -2px 0 0 -2px;
-  border-radius: 9999px;
-  background: rgba(103, 232, 249, 0.68);
-  box-shadow: 0 0 7px rgba(34, 211, 238, 0.8);
-  pointer-events: none;
-  animation: anchor-pulse 2.2s ease-in-out infinite;
-}
-
-.anchor-dot-on-block {
-  width: 7px;
-  height: 7px;
-  margin: -3.5px 0 0 -3.5px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  background: rgba(8, 47, 73, 0.7);
-  box-shadow:
-    0 0 0 2px rgba(34, 211, 238, 0.25),
-    0 0 10px rgba(34, 211, 238, 0.95);
-}
-
 .board-cell.is-clearing {
   z-index: 5;
   animation: cell-clear 520ms ease-out both;
@@ -764,18 +738,6 @@ button {
   to {
     opacity: 0.25;
     transform: scale(1);
-  }
-}
-
-@keyframes anchor-pulse {
-  0%,
-  100% {
-    opacity: 0.32;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 0.78;
-    transform: scale(1.05);
   }
 }
 

@@ -10,3 +10,18 @@ createRoot(document.getElementById('root')).render(
     <App />
   </StrictMode>,
 )
+
+// PWA: the service worker is only needed for the built site (offline play and
+// desktop installation), so skip it during `pnpm dev`.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register(`${import.meta.env.BASE_URL}sw.js`, {
+        scope: import.meta.env.BASE_URL,
+      })
+      .catch((error) => {
+        console.warn('[PWA] Service worker registration failed:', error)
+      })
+  })
+}
+
