@@ -54,22 +54,26 @@ src/
   SoundManager.js      # Web Audio 合成音效
   SoundManager.test.js # 音效節點與降級測試
   index.css            # Tailwind 與霓虹視覺樣式
+vite.config.js         # Vite 設定與建置時產生 PWA 預快取清單的外掛
 public/
   manifest.webmanifest # PWA 應用資訊（名稱、主題色、圖示）
-  sw.js                # Service Worker：App shell 預快取與離線遊玩
+  sw.js                # Service Worker：預快取整個 App 並支援離線（清單由建置產生）
   icons/               # 192 / 512 / maskable / apple-touch-icon 圖示
 .github/
   workflows/
     deploy.yml         # GitHub Pages 建置與部署
 ```
 
-## PWA（安裝到桌面）
+## PWA（安裝到桌面／手機）
 
 建置後的網站本身就是可安裝的 PWA：
 
 - `manifest.webmanifest` 提供 `standalone` 顯示模式、主題色與 192/512（含 maskable）圖示。
-- `sw.js` 於首次載入預快取 App shell，並以 runtime cache 保存 Vite 產生的 hash 檔名資源，離線也能開局。
+- `vite.config.js` 的 `block-blast:pwa-precache-manifest` 外掛會在 `pnpm build` 後，把所有輸出檔（`index.html`、hash 過的 JS/CSS、`.woff2` 字型、圖示、manifest）寫進 `dist/sw.js` 的預快取清單，並依檔案清單產生 `BUILD_ID`。
+- 因此 **安裝後第一次離線開啟就能玩**：Service Worker 在 `install` 階段就把整個 App 下載進 `block-blast-shell-<BUILD_ID>`，`start_url` 導覽離線時會回退到快取的 `index.html`，所有 JS/CSS/字型都直接從快取取得。
+- 每次部署清單與 `BUILD_ID` 都會自動更新，`activate` 時會刪除前一版快取，不會累積舊檔案。
 - Service Worker 只在 production build 註冊（`pnpm dev` 不會攔截請求），避免本機開發時拿到舊快取。
+- 遊戲本身不需要網路：分數存 `localStorage`、音效由 Web Audio 即時合成，沒有外部 CDN 或 API。
 
 安裝方式：
 
@@ -77,7 +81,12 @@ public/
 - **Android Chrome**：選單 →「加到主畫面」。
 - **iOS Safari**：分享 →「加入主畫面」。
 
-PWA 需要 HTTPS（GitHub Pages 已提供）才能安裝；變更 `sw.js` 內容時請一併調整 `SHELL_CACHE` / `RUNTIME_CACHE` 版本號，讓舊快取自動失效。
+注意事項：
+
+- 首次安裝一定需要連網一次（Service Worker 必須從網路下載並完成預快取），之後即可完全離線。
+- 驗證離線：DevTools → Application → Service Workers 勾選 **Offline** 後重新整理；或 Lighthouse 的 PWA 檢查。
+- PWA 需要 HTTPS（GitHub Pages 已提供）才能安裝。
+- `public/sw.js` 中 `BEGIN/END GENERATED PRECACHE` 之間的內容由建置流程自動覆寫，請不要手動編輯；若清單沒有被寫入，`pnpm build` 會直接報錯提醒。
 
 ## GitHub Pages 部署
 
