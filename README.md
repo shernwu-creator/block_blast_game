@@ -68,7 +68,7 @@ src/
   index.css            # Tailwind 與霓虹視覺樣式
 vite.config.js         # Vite 設定與建置時產生 PWA 預快取清單的外掛
 public/
-  manifest.webmanifest # PWA 應用資訊（名稱、主題色、圖示）
+  manifest.webmanifest # PWA 應用資訊（id /block_blast_game/、名稱、主題色、圖示）
   sw.js                # Service Worker：預快取整個 App 並支援離線（清單由建置產生）
   icons/               # 192 / 512 / maskable / apple-touch-icon 圖示
 .github/
@@ -81,6 +81,7 @@ public/
 建置後的網站本身就是可安裝的 PWA：
 
 - `manifest.webmanifest` 提供 `standalone` 顯示模式、主題色與 192/512（含 maskable）圖示。
+- **專屬 App ID（可與其他 PWA 並存安裝）**：manifest 的 `id` 明確設為 `/block_blast_game/`。`id` 是瀏覽器辨識「這個 App 是誰」的唯一鍵——同一部裝置上即使裝了多個 PWA（例如同一個 GitHub Pages 帳號底下的 `shernwu-creator.github.io/<各專案>/`），只要 `id` 不同就會被視為不同 App，主畫面／桌面可以同時存在、名稱與圖示各自獨立，也不會互相覆蓋或因為「已安裝」而擋掉第二次安裝。
 - `vite.config.js` 的 `block-blast:pwa-precache-manifest` 外掛會在 `pnpm build` 後，把所有輸出檔（`index.html`、hash 過的 JS/CSS、`.woff2` 字型、圖示、manifest）寫進 `dist/sw.js` 的預快取清單，並依檔案清單產生 `BUILD_ID`。
 - 因此 **安裝後第一次離線開啟就能玩**：Service Worker 在 `install` 階段就把整個 App 下載進 `block-blast-shell-<BUILD_ID>`，`start_url` 導覽離線時會回退到快取的 `index.html`，所有 JS/CSS/字型都直接從快取取得。
 - 每次部署清單與 `BUILD_ID` 都會自動更新，`activate` 時會刪除前一版快取，不會累積舊檔案。
@@ -99,6 +100,7 @@ public/
 - 驗證離線：DevTools → Application → Service Workers 勾選 **Offline** 後重新整理；或 Lighthouse 的 PWA 檢查。
 - PWA 需要 HTTPS（GitHub Pages 已提供）才能安裝。
 - `public/sw.js` 中 `BEGIN/END GENERATED PRECACHE` 之間的內容由建置流程自動覆寫，請不要手動編輯；若清單沒有被寫入，`pnpm build` 會直接報錯提醒。
+- manifest 的 `id` 是「應用程式身分」而不是路徑宣告：瀏覽器（Chromium 系）安裝時會把 `id` 以 manifest 網址為基準解析成唯一鍵，同一個 origin 上的兩個專案只要解析出的 `id` 不同，就會是兩個獨立 App。這裡刻意寫成絕對路徑 `/block_blast_game/` 而非相對的 `./`：相對寫法會隨 manifest 被放到哪個資料夾而改變身分，絕對路徑則固定對應本專案的部署目錄；同時它與 `start_url: "./"` 的預設解析結果相同（皆為 `.../block_blast_game/`），所以既有安裝會直接更新，不會多出第二個圖示。
 
 ## GitHub Pages 部署
 
