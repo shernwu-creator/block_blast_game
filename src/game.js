@@ -1,4 +1,4 @@
-export const BOARD_SIZE = 8
+export const DEFAULT_BOARD_SIZE = 8
 export const BATCH_SIZE = 3
 
 export const PIECE_COLORS = {
@@ -217,7 +217,7 @@ export function generateBatch(count = BATCH_SIZE, random = Math.random) {
   return pieces
 }
 
-export function createEmptyBoard(size = BOARD_SIZE) {
+export function createEmptyBoard(size = DEFAULT_BOARD_SIZE) {
   return Array.from({ length: size }, () => Array(size).fill(null))
 }
 

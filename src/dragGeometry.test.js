@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calculateDropAnchor } from './dragGeometry'
+import { calculateDropAnchor, readBoardMetrics } from './dragGeometry'
 import { createEmptyBoard } from './game'
 
 const metrics = {
@@ -25,6 +25,57 @@ const linePiece = {
   width: 4,
   height: 1,
 }
+
+function createGrid(cellSize, size, cellCount = size * size) {
+  const cells = Array.from({ length: cellCount }, (_, index) => {
+    const row = Math.floor(index / size)
+    const col = index % size
+
+    return {
+      getBoundingClientRect: () => ({
+        left: col * cellSize,
+        top: row * cellSize,
+        right: col * cellSize + cellSize,
+        bottom: row * cellSize + cellSize,
+        width: cellSize,
+        height: cellSize,
+      }),
+    }
+  })
+
+  return { querySelectorAll: () => cells }
+}
+
+describe('board metrics', () => {
+  it('measures an 8x8 grid with the default board size', () => {
+    expect(readBoardMetrics(createGrid(40, 8))).toEqual({
+      left: 0,
+      top: 0,
+      right: 320,
+      bottom: 320,
+      pitchX: 40,
+      pitchY: 40,
+    })
+  })
+
+  it('uses the requested board size for the 10x10 boundary', () => {
+    const measured = readBoardMetrics(createGrid(36, 10), 10)
+
+    expect(measured).toEqual({
+      left: 0,
+      top: 0,
+      right: 360,
+      bottom: 360,
+      pitchX: 36,
+      pitchY: 36,
+    })
+  })
+
+  it('returns null when the grid cannot cover the requested size', () => {
+    expect(readBoardMetrics(createGrid(40, 8), 10)).toBeNull()
+    expect(readBoardMetrics(null, 8)).toBeNull()
+  })
+})
 
 describe('drag drop geometry', () => {
   it('maps the centre of a dragged piece to the nearest board anchor', () => {
@@ -95,5 +146,18 @@ describe('drag drop geometry', () => {
     })
 
     expect(result).toEqual({ row: 0, col: 0, valid: true })
+  })
+
+  it('maps drops onto a 10x10 board with 10 columns', () => {
+    const board = createEmptyBoard(10)
+    const measured = readBoardMetrics(createGrid(36, 10), 10)
+    const result = calculateDropAnchor({
+      board,
+      piece: squarePiece,
+      pieceRect: { left: 200, top: 300, width: 72, height: 72 },
+      metrics: measured,
+    })
+
+    expect(result).toEqual({ row: 8, col: 6, valid: true })
   })
 })

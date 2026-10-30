@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Block Blast · 方塊爆破",
   "short_name": "Block Blast",
-  "description": "8×8 霓虹方塊益智遊戲。填滿行列，連續消除，挑戰最高分。",
+  "description": "8×8 與 10×10 霓虹方塊益智遊戲。填滿行列，連續消除，挑戰最高分。",
   "lang": "zh-Hant",
   "dir": "ltr",
   "start_url": "./",

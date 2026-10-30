@@ -1,19 +1,21 @@
-import { BOARD_SIZE, canPlace } from './game'
+import { canPlace } from './game'
 
 /**
- * Reads the visible board geometry from the rendered 8×8 grid. Using the
- * actual DOM rects keeps drop calculations correct on every screen size.
+ * Reads the visible board geometry from the rendered grid (8×8 or 10×10).
+ * Using the actual DOM rects keeps drop calculations correct on every screen
+ * size, and `boardSize` makes the last-cell lookup independent of a fixed size.
  */
-export function readBoardMetrics(gridElement) {
+export function readBoardMetrics(gridElement, boardSize = 8) {
   if (!gridElement) return null
 
+  const totalCells = boardSize * boardSize
   const cells = gridElement.querySelectorAll('.board-cell')
-  if (cells.length < BOARD_SIZE * BOARD_SIZE) return null
+  if (cells.length < totalCells) return null
 
   const first = cells[0].getBoundingClientRect()
   const second = cells[1].getBoundingClientRect()
-  const nextRow = cells[BOARD_SIZE].getBoundingClientRect()
-  const last = cells[BOARD_SIZE * BOARD_SIZE - 1].getBoundingClientRect()
+  const nextRow = cells[boardSize].getBoundingClientRect()
+  const last = cells[totalCells - 1].getBoundingClientRect()
 
   const pitchX = second.left - first.left
   const pitchY = nextRow.top - first.top

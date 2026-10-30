@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { calculateDropAnchor, readBoardMetrics } from './dragGeometry'
 import {
   BATCH_SIZE,
-  BOARD_SIZE,
+  DEFAULT_BOARD_SIZE,
   PIECE_COLORS,
   canPlace,
   clearCompletedLines,
@@ -22,6 +22,13 @@ import soundManager from './SoundManager'
 const CLEAR_DELAY = 520
 const EMPTY_LINES = { rows: [], cols: [] }
 const DEFAULT_DRAG_SCALE = 2.2
+
+const BOARD_MODES = [
+  { size: 8, title: '8 × 8', name: '經典模式', tag: 'CLASSIC' },
+  { size: 10, title: '10 × 10', name: '擴充模式', tag: 'EXTENDED' },
+]
+
+const boardSizeLabel = (size) => `${size} × ${size}`
 
 const screenVariants = {
   initial: { opacity: 0, y: 20, filter: 'blur(7px)' },
@@ -152,7 +159,7 @@ function Screen({ name, className = '', children }) {
   )
 }
 
-function MenuScreen({ highScore, onStart }) {
+function MenuScreen({ highScore, boardSize, onSelectBoardSize, onStart }) {
   return (
     <Screen name="menu" className="max-w-[27rem]">
       <FloatingShape
@@ -188,7 +195,9 @@ function MenuScreen({ highScore, onStart }) {
           transition={{ delay: 0.06, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         >
           <LogoMark large />
-          <p className="menu-kicker mt-6">NEON PUZZLE · 8 × 8</p>
+          <p className="menu-kicker mt-6">
+            {`NEON PUZZLE · ${boardSizeLabel(boardSize)}`}
+          </p>
           <h1 className="font-display mt-3 text-[clamp(2.3rem,11vw,3.4rem)] leading-[0.94] font-black tracking-[0.03em] text-white">
             BLOCK
             <span className="title-gradient mt-1 block">BLAST</span>
@@ -204,7 +213,7 @@ function MenuScreen({ highScore, onStart }) {
         </motion.div>
 
         <motion.div
-          className="high-score-panel mt-7"
+          className="high-score-panel mt-5"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.18, duration: 0.45, ease: 'easeOut' }}
@@ -225,7 +234,7 @@ function MenuScreen({ highScore, onStart }) {
                 歷史最高分
               </span>
               <span className="block text-[11px] tracking-[0.12em] text-amber-200/70">
-                PERSONAL BEST
+                {`PERSONAL BEST · ${boardSizeLabel(boardSize)}`}
               </span>
             </span>
           </div>
@@ -233,11 +242,70 @@ function MenuScreen({ highScore, onStart }) {
             {formatScore(highScore)}
           </span>
         </motion.div>
+        <motion.div
+          className="mt-4"
+          role="group"
+          aria-label="選擇棋盤模式"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.22, duration: 0.4, ease: 'easeOut' }}
+        >
+          <p className="font-display text-[11px] font-bold tracking-[0.16em] text-slate-400">
+            選擇棋盤模式 / BOARD MODE
+          </p>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {BOARD_MODES.map((mode) => {
+              const isActive = mode.size === boardSize
+
+              return (
+                <button
+                  key={mode.size}
+                  type="button"
+                  onClick={() => onSelectBoardSize(mode.size)}
+                  aria-pressed={isActive}
+                  className={`rounded-xl border px-3 py-2 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 active:scale-[0.99] ${
+                    isActive
+                      ? 'border-cyan-300/55 bg-cyan-300/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.09),0_0_22px_-8px_rgba(34,211,238,0.85)]'
+                      : 'border-white/10 bg-white/[0.03] hover:border-cyan-300/30 hover:bg-cyan-300/[0.06]'
+                  }`}
+                >
+                  <span className="flex items-center justify-between gap-1">
+                    <span
+                      className={`font-display text-[15px] leading-none font-black tracking-[0.06em] ${
+                        isActive ? 'text-cyan-100' : 'text-slate-200'
+                      }`}
+                    >
+                      {mode.title}
+                    </span>
+                    <span
+                      className={`size-1.5 rounded-full ${
+                        isActive
+                          ? 'bg-cyan-300 shadow-[0_0_8px_#67e8f9]'
+                          : 'bg-slate-600'
+                      }`}
+                      aria-hidden="true"
+                    />
+                  </span>
+                  <span
+                    className={`mt-1 block text-[12px] font-semibold tracking-[0.04em] ${
+                      isActive ? 'text-cyan-100/85' : 'text-slate-400'
+                    }`}
+                  >
+                    {mode.name}
+                    <span className="font-display ml-1 text-[9px] tracking-[0.12em] opacity-60">
+                      {mode.tag}
+                    </span>
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </motion.div>
 
         <motion.button
           type="button"
           onClick={onStart}
-          className="start-button mt-6 w-full rounded-2xl px-5 py-4 font-display text-base font-black tracking-[0.16em] text-[#03111f]"
+          className="start-button mt-4 w-full rounded-2xl px-5 py-4 font-display text-base font-black tracking-[0.16em] text-[#03111f]"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.26, duration: 0.42, ease: 'easeOut' }}
@@ -262,7 +330,7 @@ function MenuScreen({ highScore, onStart }) {
         </motion.button>
 
         <motion.div
-          className="mt-5 grid grid-cols-3 gap-2"
+          className="mt-4 grid grid-cols-3 gap-2"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.4 }}
@@ -283,7 +351,7 @@ function MenuScreen({ highScore, onStart }) {
           ))}
         </motion.div>
 
-        <p className="mt-6 text-[11px] font-semibold tracking-[0.14em] text-slate-500">
+        <p className="mt-4 text-[11px] font-semibold tracking-[0.14em] text-slate-500">
           FILL LINES · CHAIN COMBOS · KEEP GOING
         </p>
       </div>
@@ -296,6 +364,7 @@ function GameOverScreen({
   highScore,
   linesCleared,
   isNewHighScore,
+  boardSize,
   onRestart,
   onHome,
   restartRef,
@@ -350,7 +419,7 @@ function GameOverScreen({
 
           <div className="mt-5 rounded-2xl border border-white/[0.08] bg-[#040e21] px-4 py-3.5">
             <p className="text-[11px] font-bold tracking-[0.2em] text-slate-400">
-              FINAL SCORE
+              {`FINAL SCORE · ${boardSizeLabel(boardSize)}`}
             </p>
             <p className="font-display mt-1 text-[2.35rem] leading-none font-black tracking-tight text-cyan-200 [text-shadow:0_0_28px_rgba(34,211,238,0.4)]">
               {formatScore(score)}
@@ -404,11 +473,14 @@ function GameOverScreen({
 
 function App() {
   const [gameState, setGameState] = useState('menu')
-  const [board, setBoard] = useState(createEmptyBoard)
+  const [boardSize, setBoardSize] = useState(DEFAULT_BOARD_SIZE)
+  const [board, setBoard] = useState(() => createEmptyBoard(DEFAULT_BOARD_SIZE))
   const [pieces, setPieces] = useState([])
   const [selectedId, setSelectedId] = useState(null)
   const [score, setScore] = useState(0)
-  const [highScore, setHighScore] = useState(readHighScore)
+  const [highScore, setHighScore] = useState(() =>
+    readHighScore(DEFAULT_BOARD_SIZE),
+  )
   const [isNewHighScore, setIsNewHighScore] = useState(false)
   const [combo, setCombo] = useState(0)
   const [linesCleared, setLinesCleared] = useState(0)
@@ -471,16 +543,22 @@ function App() {
     previewPiece,
   ])
 
+  const boardDimension = board.length
+
   const clearingCellKeys = useMemo(() => {
     const cells = new Set()
     for (const row of clearingLines.rows) {
-      for (let col = 0; col < BOARD_SIZE; col += 1) cells.add(`${row}-${col}`)
+      for (let col = 0; col < boardDimension; col += 1) {
+        cells.add(`${row}-${col}`)
+      }
     }
     for (const col of clearingLines.cols) {
-      for (let row = 0; row < BOARD_SIZE; row += 1) cells.add(`${row}-${col}`)
+      for (let row = 0; row < boardDimension; row += 1) {
+        cells.add(`${row}-${col}`)
+      }
     }
     return cells
-  }, [clearingLines])
+  }, [clearingLines, boardDimension])
 
   useEffect(
     () => () => {
@@ -513,6 +591,14 @@ function App() {
     lastDragRectRef.current = null
   }
 
+  function selectBoardSize(size) {
+    if (size === boardSize) return
+
+    setBoardSize(size)
+    setBoard(createEmptyBoard(size))
+    setHighScore(readHighScore(size))
+  }
+
   function goHome() {
     if (clearTimerRef.current) {
       window.clearTimeout(clearTimerRef.current)
@@ -520,7 +606,7 @@ function App() {
     }
 
     setGameState('menu')
-    setBoard(createEmptyBoard())
+    setBoard(createEmptyBoard(boardSize))
     setPieces([])
     setSelectedId(null)
     setScore(0)
@@ -530,7 +616,7 @@ function App() {
     setClearingLines(EMPTY_LINES)
     setBurst(null)
     setIsNewHighScore(false)
-    setHighScore(readHighScore())
+    setHighScore(readHighScore(boardSize))
     resetDragState()
   }
 
@@ -540,7 +626,7 @@ function App() {
       clearTimerRef.current = null
     }
 
-    setBoard(createEmptyBoard())
+    setBoard(createEmptyBoard(boardSize))
     setPieces(generateBatch(BATCH_SIZE))
     setSelectedId(null)
     setScore(0)
@@ -550,6 +636,7 @@ function App() {
     setClearingLines(EMPTY_LINES)
     setBurst(null)
     setIsNewHighScore(false)
+    setHighScore(readHighScore(boardSize))
     resetDragState()
     setGameState('playing')
   }
@@ -566,7 +653,7 @@ function App() {
 
     if (beatHighScore) {
       setHighScore(finalScore)
-      persistHighScore(finalScore)
+      persistHighScore(finalScore, boardSize)
     }
   }
 
@@ -700,7 +787,7 @@ function App() {
       board,
       piece,
       pieceRect,
-      metrics: readBoardMetrics(boardGridRef.current),
+      metrics: readBoardMetrics(boardGridRef.current, board.length),
     })
     const key = target
       ? `${target.row}:${target.col}:${target.valid}`
@@ -721,7 +808,7 @@ function App() {
           board,
           piece,
           pieceRect: lastDragRectRef.current,
-          metrics: readBoardMetrics(boardGridRef.current),
+          metrics: readBoardMetrics(boardGridRef.current, board.length),
         })
       : dragTargetRef.current
     const droppedId = piece.id
@@ -766,7 +853,7 @@ function App() {
         : '這個位置放不下'
 
   return (
-    <div className="arena relative min-h-[100svh] overflow-hidden text-slate-100">
+    <div className="arena relative min-h-[100svh] overflow-x-hidden text-slate-100">
       <div className="ambient-grid" aria-hidden="true" />
       <div className="ambient-orb ambient-orb-cyan" aria-hidden="true" />
       <div className="ambient-orb ambient-orb-pink" aria-hidden="true" />
@@ -774,7 +861,13 @@ function App() {
 
       <AnimatePresence mode="wait" initial={false}>
         {gameState === 'menu' ? (
-          <MenuScreen key="menu" highScore={highScore} onStart={startGame} />
+          <MenuScreen
+            key="menu"
+            highScore={highScore}
+            boardSize={boardSize}
+            onSelectBoardSize={selectBoardSize}
+            onStart={startGame}
+          />
         ) : null}
 
         {gameState === 'playing' ? (
@@ -787,7 +880,7 @@ function App() {
                     BLOCK <span className="title-gradient">BLAST</span>
                   </p>
                   <p className="mt-1 text-[11px] font-semibold tracking-[0.14em] text-cyan-200/65">
-                    NEON PUZZLE · 8 × 8
+                    {`NEON PUZZLE · ${boardSizeLabel(boardSize)}`}
                   </p>
                 </div>
               </div>
@@ -848,7 +941,10 @@ function App() {
               </div>
             </section>
 
-            <section className="relative mt-3.5" aria-label="8乘8遊戲棋盤">
+            <section
+              className="relative mt-3.5"
+              aria-label={`${boardSize}乘${boardSize}遊戲棋盤`}
+            >
               <div className="board-glow" aria-hidden="true" />
 
               {combo > 1 && gameState === 'playing' ? (
@@ -870,10 +966,14 @@ function App() {
                   ref={boardGridRef}
                   role="grid"
                   aria-label="Block Blast 遊戲棋盤"
-                  aria-rowcount={BOARD_SIZE}
-                  aria-colcount={BOARD_SIZE}
+                  aria-rowcount={board.length}
+                  aria-colcount={board.length}
                   aria-busy={isClearing}
-                  className="board-grid grid grid-cols-8 gap-[5px] rounded-[18px] border border-white/[0.045] bg-[#030d1f] p-1.5 sm:gap-1.5 sm:p-2"
+                  className={`board-grid grid rounded-[18px] border border-white/[0.045] bg-[#030d1f] ${
+                    boardSize === 10
+                      ? 'grid-cols-10 gap-1 p-1 sm:gap-1 sm:p-1.5'
+                      : 'grid-cols-8 gap-[5px] p-1.5 sm:gap-1.5 sm:p-2'
+                  }`}
                   onMouseLeave={() => setHoverCell(null)}
                 >
                   {board.map((rowCells, row) =>
@@ -1123,6 +1223,7 @@ function App() {
             highScore={highScore}
             linesCleared={linesCleared}
             isNewHighScore={isNewHighScore}
+            boardSize={boardSize}
             onRestart={startGame}
             onHome={goHome}
             restartRef={restartButtonRef}
