@@ -71,7 +71,8 @@ function pwaPrecacheManifest() {
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/block_blast_game/',
+  // 在 Netlify 上使用根目錄 '/'，在 GitHub Actions 上使用 '/block_blast_game/'
+  base: process.env.NETLIFY ? '/' : '/block_blast_game/',
   plugins: [react(), tailwindcss(), pwaPrecacheManifest()],
 })
 
